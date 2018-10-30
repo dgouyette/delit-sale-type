@@ -1,0 +1,333 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/white.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-markdown data-background="img/themev2.png">
+					# Délit de sale type
+					
+					![](https://media1.giphy.com/media/l41m2GZsZdZohqmje/200w.webp)
+					
+					Any => Unit
+				</section>
+
+				<section >
+					<img width="25%" data-src="/img/jeuquiestce.gif"/>
+					<h4>Qui suis je ? </h4>
+					<ul>
+						<li>Freelance </li>
+						<li>Scala depuis 2012</li>
+						<li>Petit producteur de Systèmes EventSourcés 2014</li>
+					</ul>
+				</section>
+				
+				<section data-markdown>
+					### Méthodologie
+					Note:
+					- Refacto mode big bang qui a échoué
+					- Refacto d'application existante
+					- écriture d'un workshop en version typé et non typé
+				</section>
+
+				<section data-markdown>
+						Expliciter les imports lors de migration
+						```
+						import akka.{actor => untyped}						
+						def method(implicit actorSystem : untyped.ActorSystem) = ???
+						```
+				</section>
+
+
+				<section data-markdown>
+						#### Hello World  ![](/img/untyped.png) 
+						
+						```
+						class ActorDao extends untyped.Actor  
+									    with untyped.ActorLogging { 
+							def receive ={
+								case message =>  
+									log.info(s"Hello $message")
+									context.stop(self)
+									()
+							}
+						}
+
+						val actorRef = actorSystem.actorOf(Props[BoardDao])  
+						actorRef !"world" // Hello world						
+						```
+					</section>
+
+					<section data-markdown>
+							Signature de Receive  	 ![](/img/untyped.png)  
+							```
+							Any => Unit
+							```
+					</section>
+
+
+					<section data-markdown>
+							### ActorRef  ![](/img/untyped.png) 
+		
+							```
+							val props = Props[BoardDaoActor]
+							val actorRef : untyped.ActorRef = actorSystem.actorOf(props)
+		
+							//compile
+							actorRef ! FindAll
+							actorRef ! "foo"
+							actorRef ! 5
+							```
+							
+							Note:
+							La lecture d'une base de code Akka n'est pas chose aisée.	
+						</section>
+
+						<section data-markdown>
+								### ActorRef[Protocol] ![](/img/typed.png) 
+			
+								```
+								sealed trait Protocol
+								case class FindById(id: String) extends Protocol
+			
+								val boardDaoRef: ActorRef[Protocol] =  actorSystem
+											.spawnAnonymous(BoardDao.behavior)
+			
+								
+								boardDaoRef ! FindById("persistenceId") //compile
+								boardDaoRef ! "fooBarQuix"  // ne compile pas
+								```
+							</section>
+
+							<section data-markdown>
+									### Behavior ![](/img/typed.png) 
+									```
+									Behaviors.setup[Protocol] { context => 
+										Behaviors.receiveMessage { m => 
+											context.log.info(s"received $m")
+											Behaviors.stopped
+										}
+									}
+									```
+									Note:
+									Définit le comportement de l'acteur lors de la réception des messages qu'il reçoit
+									 possible de composer les behaviors
+									 Compose  : Behaviors.orElse
+							</section>
+
+					<section data-markdown>
+							#### Hello World  ![](/img/typed.png) 
+							
+							```
+							object ActorDao {
+							val behavior : Behavior[String] = Behaviors.receive { 
+								(ctx, msg) => 
+									ctx.log.info(s"Hello $value")
+									Behaviors.stopped
+							}
+
+							//ActorRef[String]
+							val actorRef = actorSystem.spawnAnonymous(ActorDao.behavior) 
+							actorRef !  "world" // Hello world
+							```
+						</section>
+
+				
+
+				
+				<section data-markdown>
+					### Type de la réponse ? ![](/img/untyped.png) 
+					```
+					class BoardDao extends Actor {
+						override def receive: Receive = {
+							case BoardDao.FindById(id) => 
+							sender() ! SQL(
+							  s"select * snapshot WHERE persistenceId = '$id'"
+							)
+							()
+					}
+					```
+					Note: 
+					La méthode Receive ayant un retour à unit, difficile de savoir ce que sera la réponse,
+					</section>
+
+					
+					<section data-markdown>
+						### Type de la réponse ![](/img/typed.png) 
+
+						sender() a disparu
+
+						```
+						case class FindById(id: String, 
+								replyTo: ActorRef[Option[Board]]) extends Protocol
+						
+						case FindById(id, replyTo) =>
+							replyTo ! database.withConnection { implicit c =>
+							SQL(s"select * from snapshot WHERE persistenceId = '$id'")
+							}
+	  					```
+					</section>
+
+
+					
+
+					<section data-markdown>
+					#### Types  & Injection de dépendances ![](/img/untyped.png) 
+					```
+					implicit val boardDao : ActorRef=actorSystem
+								.actorOf(dao.untyped.Dao.boardDaoProps)
+
+					implicit val ticketDao: ActorRef=actorSystem
+							  .actorOf(dao.untyped.Dao.ticketDaoProps)
+					
+					 //compile error found multiple value 
+					 //of type akka.actor.ActorRef
+					class BoardController(val boardDao: ActorRef)...		  
+					```
+					</section>
+					
+
+					<section data-markdown>
+							#### Types  & Injection de dépendances ![](/img/untyped.png)
+							```
+							import com.softwaremill.tagging._
+							trait BoardDaoTag
+		
+							val boardDao : @@[ActorRef, BoardDaoTag] = actorSystem
+								.actorOf(Props[BoardDao])
+								.taggedWith[BoardDaoTag]
+
+							class BoardController(boardDao : ActorRef @@ BoardDaoTag)
+		
+							```
+					</section>
+
+					<section data-markdown>
+						#### Types  & Injection de dépendances ![](/img/typed.png)
+						```
+						val boardDaoTyped: ActorRef[BoardDao.Protocol] =  
+							actorSystem.spawn(BoardDao.behavior)
+
+						val ticketDaoTyped: ActorRef[TicketDao.Protocol] =  
+							  actorSystem.spawn(TicketDao.behavior)
+							  
+						class BoardController(
+										val boardDao: ActorRef[BoardDao.Protocol])	  
+						```
+					</section>
+
+					<section data-markdown>
+						#### Protocole  ![](/img/typed.png)
+
+						```
+						sealed trait Protocol
+						case class FindAll(replyTo: ActorRef[Seq[Board]]) 
+							extends Protocol
+						case class FindById(id: String, replyTo: ActorRef[Option[Board]])
+							extends Protocol
+						
+						val behavior: Behavior[Protocol] = Behaviors.receiveMessage {
+							case FindAll(replyTo) => ...
+						
+						}
+						//match may not be exhaustive.
+						//[warn] It would fail on the following input: FindById(_, _)
+						```
+					</section>
+
+					<section data-markdown>
+						### Types et ask  ![](/img/untyped.png)
+						```
+						import akka.pattern.ask
+						val boardDao : untyped.ActorRef = ...
+						
+						(boardDao ? FindById(id)).mapTo[Option[Board]] //compile
+						(boardDao ? FindById(id)).mapTo[Option[Ticket]] //compile
+						
+						//runtime ClassCastException: Ticket cannot be cast to states.Ticket
+						```
+					</section>
+
+					<section data-markdown>
+							### Types et ask  ![](/img/typed.png)
+							```
+							import akka.actor.typed.scaladsl.AskPattern._
+							val boardDao : ActorRef[BoardDao.Protocol] = ...
+							
+							val msg = (ref: ActorRef[Option[Board]]) => FindById(id, ref)
+							boardDao ? msg
+
+							//def ?[U](replyTo: ActorRef[U] ⇒ T)
+
+							```
+						</section>
+
+					
+
+					<section data-markdown>
+						### Coexistence
+
+						```
+						import akka.actor.typed.scaladsl.adapter._
+						```
+					</section>
+					
+
+					<section data-markdown>
+							### Versionning d'Akka
+		
+							 * Evolutions sur versions correctives (2.5.14->2.5.17)
+							 * Pas encore iso fonctionnel avec la version non typée
+						</section>
+					
+						<section data-markdown>
+							# Questions ? 
+							![](https://media.giphy.com/media/yRwYYk8Z7o3IY/giphy.gif)  
+
+							Twitter :  [@cestpasdur](https://twitter.com/cestpasdur)
+
+							Github :  [dgouyette](https://github.com/dgouyette?tab=repositories)
+
+						</section>
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
