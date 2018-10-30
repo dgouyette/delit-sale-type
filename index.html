@@ -24,7 +24,7 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section data-markdown data-background="img/themev2.png">
+				<section data-markdown data-background="https://dgouyette.github.io/delit-sale-type/img/themev2.png">
 					# Délit de sale type
 					
 					![](https://media1.giphy.com/media/l41m2GZsZdZohqmje/200w.webp)
@@ -33,7 +33,7 @@
 				</section>
 
 				<section >
-					<img width="25%" data-src="/img/jeuquiestce.gif"/>
+					<img width="25%" data-src="https://dgouyette.github.io/delit-sale-type/img/jeuquiestce.gif"/>
 					<h4>Qui suis je ? </h4>
 					<ul>
 						<li>Freelance </li>
@@ -60,7 +60,7 @@
 
 
 				<section data-markdown>
-						#### Hello World  ![](/img/untyped.png) 
+						#### Hello World  ![](https://dgouyette.github.io/delit-sale-type/img/untyped.png) 
 						
 						```
 						class ActorDao extends untyped.Actor  
@@ -79,7 +79,7 @@
 					</section>
 
 					<section data-markdown>
-							Signature de Receive  	 ![](/img/untyped.png)  
+							Signature de Receive  	 ![](https://dgouyette.github.io/delit-sale-type/img/untyped.png)  
 							```
 							Any => Unit
 							```
@@ -87,7 +87,7 @@
 
 
 					<section data-markdown>
-							### ActorRef  ![](/img/untyped.png) 
+							### ActorRef  ![](https://dgouyette.github.io/delit-sale-type/img/untyped.png) 
 		
 							```
 							val props = Props[BoardDaoActor]
@@ -104,7 +104,7 @@
 						</section>
 
 						<section data-markdown>
-								### ActorRef[Protocol] ![](/img/typed.png) 
+								### ActorRef[Protocol] ![](https://dgouyette.github.io/delit-sale-type/img/typed.png) 
 			
 								```
 								sealed trait Protocol
@@ -120,7 +120,7 @@
 							</section>
 
 							<section data-markdown>
-									### Behavior ![](/img/typed.png) 
+									### Behavior ![](https://dgouyette.github.io/delit-sale-type/img/typed.png) 
 									```
 									Behaviors.setup[Protocol] { context => 
 										Behaviors.receiveMessage { m => 
@@ -136,7 +136,7 @@
 							</section>
 
 					<section data-markdown>
-							#### Hello World  ![](/img/typed.png) 
+							#### Hello World  ![](https://dgouyette.github.io/delit-sale-type/img/typed.png) 
 							
 							```
 							object ActorDao {
@@ -156,7 +156,7 @@
 
 				
 				<section data-markdown>
-					### Type de la réponse ? ![](/img/untyped.png) 
+					### Type de la réponse ? ![](https://dgouyette.github.io/delit-sale-type/img/untyped.png) 
 					```
 					class BoardDao extends Actor {
 						override def receive: Receive = {
@@ -173,7 +173,7 @@
 
 					
 					<section data-markdown>
-						### Type de la réponse ![](/img/typed.png) 
+						### Type de la réponse ![](https://dgouyette.github.io/delit-sale-type/img/typed.png) 
 
 						sender() a disparu
 
@@ -192,7 +192,7 @@
 					
 
 					<section data-markdown>
-					#### Types  & Injection de dépendances ![](/img/untyped.png) 
+					#### Types  & Injection de dépendances ![](https://dgouyette.github.io/delit-sale-type/img/untyped.png) 
 					```
 					implicit val boardDao : ActorRef=actorSystem
 								.actorOf(dao.untyped.Dao.boardDaoProps)
@@ -208,7 +208,7 @@
 					
 
 					<section data-markdown>
-							#### Types  & Injection de dépendances ![](/img/untyped.png)
+							#### Types  & Injection de dépendances ![](https://dgouyette.github.io/delit-sale-type/img/untyped.png)
 							```
 							import com.softwaremill.tagging._
 							trait BoardDaoTag
@@ -223,7 +223,7 @@
 					</section>
 
 					<section data-markdown>
-						#### Types  & Injection de dépendances ![](/img/typed.png)
+						#### Types  & Injection de dépendances ![](https://dgouyette.github.io/delit-sale-type/img/typed.png)
 						```
 						val boardDaoTyped: ActorRef[BoardDao.Protocol] =  
 							actorSystem.spawn(BoardDao.behavior)
@@ -237,7 +237,7 @@
 					</section>
 
 					<section data-markdown>
-						#### Protocole  ![](/img/typed.png)
+						#### Protocole  ![](https://dgouyette.github.io/delit-sale-type/img/typed.png)
 
 						```
 						sealed trait Protocol
@@ -256,7 +256,7 @@
 					</section>
 
 					<section data-markdown>
-						### Types et ask  ![](/img/untyped.png)
+						### Types et ask  ![](https://dgouyette.github.io/delit-sale-type/img/untyped.png)
 						```
 						import akka.pattern.ask
 						val boardDao : untyped.ActorRef = ...
@@ -269,7 +269,7 @@
 					</section>
 
 					<section data-markdown>
-							### Types et ask  ![](/img/typed.png)
+							### Types et ask  ![](https://dgouyette.github.io/delit-sale-type/img/typed.png)
 							```
 							import akka.actor.typed.scaladsl.AskPattern._
 							val boardDao : ActorRef[BoardDao.Protocol] = ...
